@@ -1,0 +1,28 @@
+name: "Send approved emails (every 30 minutes)"
+
+# GitHub cron uses UTC. India Standard Time (IST) = UTC + 5:30.
+on:
+  schedule:
+    - cron: "*/30 * * * *" # every 30 minutes, day and night (UTC and IST alike)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cron-send-approved
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+      - name: Call the app
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: bash .github/scripts/call-cron.sh send-approved

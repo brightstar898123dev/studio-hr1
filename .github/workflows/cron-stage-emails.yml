@@ -1,0 +1,28 @@
+name: "Stage emails (hourly 09:00-18:00 IST)"
+
+# GitHub cron uses UTC. India Standard Time (IST) = UTC + 5:30.
+on:
+  schedule:
+    - cron: "30 3-12 * * *" # every hour from 09:00 to 18:00 IST
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cron-stage-emails
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+      - name: Call the app
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: bash .github/scripts/call-cron.sh stage-emails
